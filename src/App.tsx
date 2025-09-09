@@ -86,6 +86,14 @@ function useAllRecodes(maconfig: MaConfig) {
 const defDateRange: DateRange = { from: new Date(now() - 24 * 60 * 60 * 1000), to: new Date() }
 function PendingMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecodes: ReturnType<typeof useAllRecodes> }) {
   const { address } = useAccount()
+  const recodesSNmap = useMemo(() => {
+    const map: { [k: string]: typeof queryRecodes.data[number] } = {}
+    for (const item of queryRecodes.data) {
+      map[item.sn] = item
+    }
+    return map
+  }, [queryRecodes.data])
+
   const { data } = useQuery({
     queryKey: ['pending datas', maconfig.stake, address],
     initialData: [],
@@ -98,13 +106,15 @@ function PendingMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecode
   })
   const [daterange, setDateRange] = useState<DateRange>(defDateRange)
   const fData = useMemo(() => {
-    if (!daterange || !daterange.from || !daterange.to) return data
+    const isStaked = (item: ItemData) => Boolean(recodesSNmap[item.sn] && !recodesSNmap[item.sn].unstaked)
+    const mdata = data.filter(item => !isStaked(item))
+    if (!daterange || !daterange.from || !daterange.to) return mdata
     const from = new Date(daterange.from)
     const to = new Date(daterange.to)
     from.setHours(0, 0, 0)
     to.setHours(23, 59, 59)
-    return data.filter((item) => toUnix(from) <= parseInt(item.startDate) && parseInt(item.startDate) <= toUnix(to))
-  }, [daterange, data])
+    return mdata.filter((item) => toUnix(from) <= parseInt(item.startDate) && parseInt(item.startDate) <= toUnix(to))
+  }, [daterange, data, recodesSNmap])
 
   const [selected, setSelected] = useState<ItemData[]>([])
   useEffect(() => {
