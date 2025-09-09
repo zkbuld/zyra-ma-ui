@@ -62,17 +62,17 @@ export function Txs({
                 const msg = getErrorMsg(error)
                 const showTxsStat = !disableProgress && calls.length > 1
                 if (msg && (msg.includes('wallet_sendCalls') || msg.includes("EIP-7702 not supported"))) {
-                    let progress = 0; 
+                    let progress = 0;
                     showTxsStat && useTxsStore.setState({ txs: calls, progress })
                     for (const item of calls) {
-                        const txconfig = beforeSimulate ? (await pc.simulateContract(item)).request : item;
+                        const txconfig = beforeSimulate ? (await pc.simulateContract({ ...item, account: wc.account.address })).request : item;
                         const tx = await wc.writeContract(txconfig)
                         const res = await pc.waitForTransactionReceipt({ hash: tx, confirmations: 1 })
                         if (res.status !== 'success') throw new Error('Transactions Reverted')
                         progress++
                         showTxsStat && useTxsStore.setState({ progress })
                     }
-                    
+
                     toast && tos.success("Transactions Success")
                     useTxsStore.setState({ progress: 0, txs: [] })
                     onTxSuccess?.()
