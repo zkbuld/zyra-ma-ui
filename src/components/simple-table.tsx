@@ -48,7 +48,7 @@ export const STable = ({
   const cols = header.reduce<number>((sum, _item, i) => sum + (span[i] ?? 1), 0);
   const baseSize = cols > 0 ? 100 / cols : 0;
   return (
-    <table className={cn('relative w-full bg-transparent ', className)}>
+    <table className={cn('relative w-full bg-transparent h-fit', className)}>
       <thead className='sticky top-0 left-0 bg-white/10 backdrop-blur-lg'>
         <tr
           className={cn(

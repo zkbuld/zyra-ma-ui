@@ -91,7 +91,7 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
     initialData: [],
     enabled: Boolean(address),
     queryFn: async () => {
-      const res = await fetch('https://desk.bitcoinzyra.io/api/v1/open/contract/pending', { method: 'GET', headers: { "accept": "*/*", "X-Address": address!, "Accept-Language": "zh-CN" } })
+      const res = await fetch('https://desk.bitcoinzyra.io/api/v1/open/contract/pending', { method: 'GET', headers: { "X-Address": address! } })
       const data: { code: number, message: string, data: { address: Address, miningMachineSN: string, startDate: `${number}`, dueDate: `${number}`, amount: `${number}` }[] } = await res.json()
       return data.data.map(item => ({ user: item.address, sn: item.miningMachineSN, amount: parseUnits(item.amount, maconfig.assetDecimals), startDate: item.startDate, dueDate: item.dueDate } as ItemData))
     }
@@ -178,7 +178,7 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
         onClickRow={(i) => changeChecked(data[i], !selected.includes(data[i]))}
         data={fData.map((item) => [
           shortStr(item.user),
-          shortStr(item.sn),
+          <div key={'sn'}>{item.sn}</div>,
           `${formatUnits(item.amount, maconfig.assetDecimals)}`,
           `${new Date(parseInt(item.startDate) * 1000).toLocaleDateString()}`,
           `${new Date(parseInt(item.dueDate) * 1000).toLocaleDateString()}`,
@@ -251,7 +251,7 @@ function MaturityMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecod
         onClickRow={(i) => changeChecked(data[i], !selected.includes(data[i]))}
         data={data.map((item) => [
           shortStr(item.user),
-          shortStr(item.sn),
+          <div key={'sn'}>{item.sn}</div>,
           `${formatEther(item.amount)}`,
           `${new Date(toNumber(item.startTimestamp) * 1000).toLocaleDateString()}`,
           `${new Date(toNumber(item.endTimestamp) * 1000).toLocaleDateString()}`,
