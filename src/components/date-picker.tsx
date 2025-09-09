@@ -1,10 +1,10 @@
-import { ChevronDownIcon } from "lucide-react"
-import { Button } from "./ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { Calendar } from "./ui/calendar"
-import React, { useEffect, useState } from "react"
 import { now } from "es-toolkit/compat"
+import { ChevronDownIcon } from "lucide-react"
+import React, { useState } from "react"
 import type { DateRange, Matcher } from "react-day-picker"
+import { Button } from "./ui/button"
+import { Calendar } from "./ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 
 const due = 3 * 365 * 24 * 60 * 60 * 1000;
 const hidden: Matcher[] = [{ before: new Date(now() - due) }, { after: new Date(now() + due) }]
