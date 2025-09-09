@@ -84,7 +84,7 @@ function useAllRecodes(maconfig: MaConfig) {
 
 
 const defDateRange: DateRange = { from: new Date(now() - 24 * 60 * 60 * 1000), to: new Date() }
-function PendingMa({ maconfig }: { maconfig: MaConfig }) {
+function PendingMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecodes: ReturnType<typeof useAllRecodes> }) {
   const { address } = useAccount()
   const { data } = useQuery({
     queryKey: ['pending datas', maconfig.stake, address],
@@ -195,7 +195,13 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
     </div>
     <div className='flex justify-between'>
       <div>Total: {formatUnits(total, maconfig.assetDecimals)}</div>
-      <Txs tx='Stake' disabled={selected.length <= 0 || !address} txs={getTxs} />
+      <Txs tx='Stake' disabled={selected.length <= 0 || !address} txs={getTxs}
+        onTxSuccess={() => {
+          setSelectedGroup(undefined)
+          setSelected([])
+          queryRecodes.refetch()
+        }}
+      />
     </div>
   </div>
 }
@@ -204,7 +210,7 @@ function MaturityMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecod
   const [selected, setSelected] = useState<typeof data>([])
   const [selectedGroup, setSelectedGroup] = useState<number>()
 
-  const data = useMemo(() => queryRecodes.data.filter(item => toNumber(item.endTimestamp) > toUnix(now()) && !item.unstaked), [queryRecodes.data])
+  const data = useMemo(() => queryRecodes.data.filter(item => toNumber(item.endTimestamp) < toUnix(now()) && !item.unstaked), [queryRecodes.data])
   useEffect(() => {
     setSelected(old => old.filter(item => data.includes(item)))
   }, [data])
@@ -273,7 +279,13 @@ function MaturityMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecod
     <div className='flex justify-between'>
       <div>Total: </div>
       <Button disabled={queryRecodes.isFetching} onClick={() => queryRecodes.refetch()}>{queryRecodes.isFetching && <Loader2Icon className="animate-spin" />} Refresh</Button>
-      <Txs tx='UnStake' disabled={selected.length <= 0 || !address} txs={getTxs} />
+      <Txs tx='UnStake' disabled={selected.length <= 0 || !address} txs={getTxs}
+        onTxSuccess={() => {
+          setSelectedGroup(undefined)
+          setSelected([])
+          queryRecodes.refetch()
+        }}
+      />
     </div>
   </div>
 }
@@ -303,7 +315,7 @@ function App() {
                 <TabsTrigger value="Maturity">Maturity</TabsTrigger>
               </TabsList>
               <TabsContent value='Pending'>
-                <PendingMa maconfig={config} />
+                <PendingMa maconfig={config} queryRecodes={queryRecodes} />
               </TabsContent>
               <TabsContent value='Maturity'>
                 <MaturityMa maconfig={config} queryRecodes={queryRecodes} />
