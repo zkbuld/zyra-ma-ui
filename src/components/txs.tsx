@@ -15,7 +15,7 @@ import { Button } from "./ui/button"
 
 export type TxConfig = SimulateContractParameters & { name?: string }
 export type TX = TxConfig | (() => Promise<TxConfig>)
-// eslint-disable-next-line react-refresh/only-export-components
+
 export const useTxsStore = create(() => ({ txs: [] as TxConfig[], progress: 0 }))
 export function Txs({
     className, tx, txs, disabled, disableSendCalls = true, disableProgress, beforeSimulate = true, toast = true, onTxSuccess }:
@@ -51,7 +51,6 @@ export function Txs({
                     const res = await wc.waitForCallsStatus({ id })
                     if (res.status == 'pending') continue
                     if (res.status == 'success') {
-                        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
                         toast && tos.success("Transactions Success")
                         onTxSuccess?.()
                     } else {
@@ -63,8 +62,7 @@ export function Txs({
                 const msg = getErrorMsg(error)
                 const showTxsStat = !disableProgress && calls.length > 1
                 if (msg && (msg.includes('wallet_sendCalls') || msg.includes("EIP-7702 not supported"))) {
-                    let progress = 0;
-                    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                    let progress = 0; 
                     showTxsStat && useTxsStore.setState({ txs: calls, progress })
                     for (const item of calls) {
                         const txconfig = beforeSimulate ? (await pc.simulateContract(item)).request : item;
@@ -72,10 +70,9 @@ export function Txs({
                         const res = await pc.waitForTransactionReceipt({ hash: tx, confirmations: 1 })
                         if (res.status !== 'success') throw new Error('Transactions Reverted')
                         progress++
-                        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
                         showTxsStat && useTxsStore.setState({ progress })
                     }
-                    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                    
                     toast && tos.success("Transactions Success")
                     useTxsStore.setState({ progress: 0, txs: [] })
                     onTxSuccess?.()
@@ -84,7 +81,6 @@ export function Txs({
         },
         onError: (error) => {
             useTxsStore.setState({ progress: 0, txs: [] })
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             toast && handleError(error)
         }
     })
@@ -104,7 +100,7 @@ export function Txs({
     </Button>
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+
 export async function withTokenApprove({ approves, pc, user, tx }: {
     approves: { spender: Address, token: Address, amount: bigint, name?: string }[],
     pc: PublicClient

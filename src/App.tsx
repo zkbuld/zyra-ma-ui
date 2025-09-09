@@ -28,6 +28,7 @@ type ItemData = {
   dueDate: `${number}`,
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const testData: ItemData[] = [
   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
@@ -101,8 +102,8 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
     if (!daterange || !daterange.from || !daterange.to) return data
     const from = new Date(daterange.from)
     const to = new Date(daterange.to)
-    from.setHours(0, 0, 0, 0)
-    to.setHours(23, 59, 59, 999)
+    from.setHours(0, 0, 0)
+    to.setHours(23, 59, 59)
     return data.filter((item) => toUnix(from) <= parseInt(item.startDate) && parseInt(item.startDate) <= toUnix(to))
   }, [daterange, data])
   const [selected, setSelected] = useState<ItemData[]>([])

@@ -32,16 +32,12 @@ export function SimpleDialog({
         <Dialog.Overlay className='fixed top-0 left-0 inset-0 z-50 bg-black/60' />
         <Dialog.Content
           onEscapeKeyDown={(e) => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             disableClose && e.stopPropagation()
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             disableClose && e.preventDefault()
           }}
           onInteractOutside={(e) => {
             console.info('e:', e)
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             disableOutClose && e.stopPropagation()
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             disableOutClose && e.preventDefault()
           }}
           style={style}
