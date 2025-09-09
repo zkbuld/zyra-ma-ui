@@ -2,10 +2,13 @@ import logo from '@/assets/react.svg'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useQuery } from '@tanstack/react-query'
 import { flatten, range } from 'es-toolkit'
-import { useRef, useState } from 'react'
+import { now } from 'es-toolkit/compat'
+import { useMemo, useRef, useState } from 'react'
+import type { DateRange } from 'react-day-picker'
 import { toast } from 'sonner'
-import { erc20Abi, formatEther, parseEther, zeroAddress, type Address } from 'viem'
+import { erc20Abi, formatEther, formatUnits, parseUnits, zeroAddress, type Address } from 'viem'
 import { useAccount, useChainId } from 'wagmi'
+import { DateRangePicker } from './components/date-picker'
 import STable from './components/simple-table'
 import { ConfigChainsProvider } from './components/support-chains'
 import { Txs, withTokenApprove } from './components/txs'
@@ -14,9 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
 import { abiMaStake, MaConfigs, type MaConfig } from './configs'
 import { shortStr, toNumber, toUnix } from './lib/mutils'
 import { getPC } from './lib/publicClient'
-import { now } from 'es-toolkit/compat'
-import { DateRangePicker } from './components/date-picker'
-import type { DateRange } from 'react-day-picker'
+import { Button } from './components/ui/button'
+import { Loader2Icon } from 'lucide-react'
 
 type ItemData = {
   user: Address,
@@ -91,10 +93,18 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
     queryFn: async () => {
       const res = await fetch('https://desk.bitcoinzyra.io/api/v1/open/contract/pending', { method: 'GET', headers: { "accept": "*/*", "X-Address": address!, "Accept-Language": "zh-CN" } })
       const data: { code: number, message: string, data: { address: Address, miningMachineSN: string, startDate: `${number}`, dueDate: `${number}`, amount: `${number}` }[] } = await res.json()
-      return data.data.map(item => ({ user: item.address, sn: item.miningMachineSN, amount: parseEther(item.amount), startDate: item.startDate, dueDate: item.dueDate } as ItemData))
+      return data.data.map(item => ({ user: item.address, sn: item.miningMachineSN, amount: parseUnits(item.amount, maconfig.assetDecimals), startDate: item.startDate, dueDate: item.dueDate } as ItemData))
     }
   })
   const [daterange, setDateRange] = useState<DateRange>(defDateRange)
+  const fData = useMemo(() => {
+    if (!daterange || !daterange.from || !daterange.to) return data
+    const from = new Date(daterange.from)
+    const to = new Date(daterange.to)
+    from.setHours(0, 0, 0, 0)
+    to.setHours(23, 59, 59, 999)
+    return data.filter((item) => toUnix(from) <= parseInt(item.startDate) && parseInt(item.startDate) <= toUnix(to))
+  }, [daterange, data])
   const [selected, setSelected] = useState<ItemData[]>([])
   const [selectedGroup, setSelectedGroup] = useState<number>()
   const refBody = useRef<HTMLTableSectionElement>(null)
@@ -125,7 +135,7 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
       unstaked: false
     }))
     return withTokenApprove({
-      approves: [{ spender: maconfig.stake, token: maconfig.asset, amount: 123n }],
+      approves: [{ spender: maconfig.stake, token: maconfig.asset, amount: total }],
       pc,
       user: address,
       tx: {
@@ -141,7 +151,7 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
     <DateRangePicker date={daterange} onChange={setDateRange as any} />
     <div className='grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2'>
       {
-        range(0, data.length, MaxSelect).map((_, index) =>
+        range(0, fData.length, MaxSelect).map((_, index) =>
           <div
             className='flex items-center gap-4 rounded border border-black/10 p-4 cursor-pointer'
             onClick={() => {
@@ -150,7 +160,7 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
                 setSelected([])
               } else {
                 setSelectedGroup(index)
-                setSelected(data.filter((_, i) => index * MaxSelect <= i && i < (index + 1) * MaxSelect))
+                setSelected(fData.filter((_, i) => index * MaxSelect <= i && i < (index + 1) * MaxSelect))
                 refBody.current?.children[index * MaxSelect]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
               }
             }}
@@ -166,10 +176,10 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
         header={['Address', 'Mining machine SN', 'Zyra amount', 'Start Date', 'Due Date', '']}
         rowClassName={(i) => selected.includes(data[i]) ? 'bg-primary/20' : ''}
         onClickRow={(i) => changeChecked(data[i], !selected.includes(data[i]))}
-        data={data.map((item) => [
+        data={fData.map((item) => [
           shortStr(item.user),
           shortStr(item.sn),
-          `${formatEther(item.amount)}`,
+          `${formatUnits(item.amount, maconfig.assetDecimals)}`,
           `${new Date(parseInt(item.startDate) * 1000).toLocaleDateString()}`,
           `${new Date(parseInt(item.dueDate) * 1000).toLocaleDateString()}`,
           <Checkbox
@@ -180,7 +190,7 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
       />
     </div>
     <div className='flex justify-between'>
-      <div>Total: {formatEther(total)}</div>
+      <div>Total: {formatUnits(total, maconfig.assetDecimals)}</div>
       <Txs tx='Stake' disabled={selected.length <= 0 || !address} txs={getTxs} />
     </div>
   </div>
@@ -255,6 +265,7 @@ function MaturityMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecod
 
     <div className='flex justify-between'>
       <div>Total: </div>
+      <Button disabled={queryRecodes.isFetching} onClick={() => queryRecodes.refetch()}>{queryRecodes.isFetching && <Loader2Icon className="animate-spin" />} Refresh</Button>
       <Txs tx='UnStake' disabled={selected.length <= 0 || !address} txs={getTxs} />
     </div>
   </div>

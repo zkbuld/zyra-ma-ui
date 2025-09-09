@@ -45,7 +45,7 @@ export function DateRangePicker({ onChange, date }: { onChange?: (date: DateRang
                 id="date"
                 className="w-xl justify-between font-normal"
             >
-                {date && date.from && date.to ? `${date.from.toLocaleDateString()} -> ${date.to.toLocaleDateString()}` : "Select date range"}
+                {date && date.from && date.to ? `${date.from.toLocaleDateString()} 00:00:00 -> ${date.to.toLocaleDateString()} 23:59:59` : "Select date range"}
                 <ChevronDownIcon />
             </Button>
         </PopoverTrigger>
