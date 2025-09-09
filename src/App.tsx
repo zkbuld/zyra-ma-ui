@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { flatten, range } from 'es-toolkit'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { erc20Abi, zeroAddress, type Address } from 'viem'
+import { erc20Abi, formatEther, parseEther, zeroAddress, type Address } from 'viem'
 import { useAccount, useChainId } from 'wagmi'
 import STable from './components/simple-table'
 import { ConfigChainsProvider } from './components/support-chains'
@@ -15,48 +15,50 @@ import { abiMaStake, MaConfigs, type MaConfig } from './configs'
 import { shortStr, toNumber, toUnix } from './lib/mutils'
 import { getPC } from './lib/publicClient'
 import { now } from 'es-toolkit/compat'
+import { DateRangePicker } from './components/date-picker'
+import type { DateRange } from 'react-day-picker'
 
 type ItemData = {
   user: Address,
   sn: string,
   amount: bigint,
-  startDate: string,
-  dueDate: string,
+  startDate: `${number}`, // unix 
+  dueDate: `${number}`,
 }
 
 const testData: ItemData[] = [
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
-  { user: zeroAddress, sn: '2352q45', amount: 1249000n, startDate: '2025-09-01', dueDate: '2026-09-01' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
+  { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
 ]
 const MaxSelect = 10;
 
@@ -77,15 +79,22 @@ function useAllRecodes(maconfig: MaConfig) {
     }
   })
 }
+
+
+const defDateRange: DateRange = { from: new Date(now() - 24 * 60 * 60 * 1000), to: new Date() }
 function PendingMa({ maconfig }: { maconfig: MaConfig }) {
   const { address } = useAccount()
   const { data } = useQuery({
-    queryKey: ['pending datas', maconfig.stake],
-    initialData: testData,
+    queryKey: ['pending datas', maconfig.stake, address],
+    initialData: [],
+    enabled: Boolean(address),
     queryFn: async () => {
-      return testData
+      const res = await fetch('https://desk.bitcoinzyra.io/api/v1/open/contract/pending', { method: 'GET', headers: { "accept": "*/*", "X-Address": address!, "Accept-Language": "zh-CN" } })
+      const data: { code: number, message: string, data: { address: Address, miningMachineSN: string, startDate: `${number}`, dueDate: `${number}`, amount: `${number}` }[] } = await res.json()
+      return data.data.map(item => ({ user: item.address, sn: item.miningMachineSN, amount: parseEther(item.amount), startDate: item.startDate, dueDate: item.dueDate } as ItemData))
     }
   })
+  const [daterange, setDateRange] = useState<DateRange>(defDateRange)
   const [selected, setSelected] = useState<ItemData[]>([])
   const [selectedGroup, setSelectedGroup] = useState<number>()
   const refBody = useRef<HTMLTableSectionElement>(null)
@@ -106,20 +115,15 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
     const pc = getPC(maconfig.chain.id)
     const assetBalance = await pc.readContract({ abi: erc20Abi, functionName: 'balanceOf', address: maconfig.asset, args: [address] })
     if (assetBalance < total) throw new Error("Balance too low!")
-    let nounce = await pc.readContract({ abi: abiMaStake, address: maconfig.stake, functionName: 'getStakeCount' })
-    const recods: any[] = []
-    for (const item of selected) {
-      nounce++
-      recods.push({
-        id: nounce,
-        user: item.user,
-        sn: item.sn,
-        amount: item.amount,
-        startTimestamp: BigInt(toUnix(item.startDate)),
-        endTimestamp: BigInt(toUnix(item.dueDate)),
-        unstaked: false
-      })
-    }
+    const recods = selected.map(item => ({
+      id: 0n,
+      user: item.user,
+      sn: item.sn,
+      amount: item.amount,
+      startTimestamp: BigInt(item.startDate),
+      endTimestamp: BigInt(item.dueDate),
+      unstaked: false
+    }))
     return withTokenApprove({
       approves: [{ spender: maconfig.stake, token: maconfig.asset, amount: 123n }],
       pc,
@@ -134,6 +138,7 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
   }
 
   return <div className='flex flex-col gap-5 mt-2'>
+    <DateRangePicker date={daterange} onChange={setDateRange as any} />
     <div className='grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2'>
       {
         range(0, data.length, MaxSelect).map((_, index) =>
@@ -164,9 +169,9 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
         data={data.map((item) => [
           shortStr(item.user),
           shortStr(item.sn),
-          `${item.amount}`,
-          `${item.startDate}`,
-          `${item.dueDate}`,
+          `${formatEther(item.amount)}`,
+          `${new Date(parseInt(item.startDate) * 1000).toLocaleDateString()}`,
+          `${new Date(parseInt(item.dueDate) * 1000).toLocaleDateString()}`,
           <Checkbox
             key={`pendingcheck`}
             checked={selected.includes(item)}
@@ -175,7 +180,7 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
       />
     </div>
     <div className='flex justify-between'>
-      <div>Total: {total}</div>
+      <div>Total: {formatEther(total)}</div>
       <Txs tx='Stake' disabled={selected.length <= 0 || !address} txs={getTxs} />
     </div>
   </div>
@@ -237,7 +242,7 @@ function MaturityMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecod
         data={data.map((item) => [
           shortStr(item.user),
           shortStr(item.sn),
-          `${item.amount}`,
+          `${formatEther(item.amount)}`,
           `${new Date(toNumber(item.startTimestamp) * 1000).toLocaleDateString()}`,
           `${new Date(toNumber(item.endTimestamp) * 1000).toLocaleDateString()}`,
           <Checkbox

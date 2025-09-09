@@ -15,8 +15,8 @@ export type MaConfig = {
 export const MaConfigs: MaConfig[] = [
   {
     chain: bscTestnet,
-    stake: "0x73660074a3fad0c03ffb10ce6547e61c80d4e33b",
-    asset: "0x4211b1e4f448a3719114ed2717158c3c2a32f049",
+    stake: "0x8f55acb3a053a2b14cea7b8825a67537fce623b1",
+    asset: "0x3cf4b2d37fa4aa5d9ba34bf79d15103935e58b5d",
     assetDecimals: 18
   },
 ];
