@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { flatten, range } from 'es-toolkit'
 import { now } from 'es-toolkit/compat'
 import { Loader2Icon } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { toast } from 'sonner'
 import { erc20Abi, formatEther, formatUnits, parseUnits, type Address } from 'viem'
@@ -105,7 +105,11 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
     to.setHours(23, 59, 59)
     return data.filter((item) => toUnix(from) <= parseInt(item.startDate) && parseInt(item.startDate) <= toUnix(to))
   }, [daterange, data])
+
   const [selected, setSelected] = useState<ItemData[]>([])
+  useEffect(() => {
+    setSelected(old => old.filter(item => fData.includes(item)))
+  },[fData])
   const [selectedGroup, setSelectedGroup] = useState<number>()
   const refBody = useRef<HTMLTableSectionElement>(null)
   const changeChecked = (item: ItemData, checked: boolean) => {

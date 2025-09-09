@@ -2,7 +2,7 @@ import { ChevronDownIcon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { Calendar } from "./ui/calendar"
-import React from "react"
+import React, { useState } from "react"
 import { now } from "es-toolkit/compat"
 import type { DateRange, Matcher } from "react-day-picker"
 
@@ -33,11 +33,13 @@ export function DatePicker({ onChange, date }: { onChange?: (date: Date | undefi
                     onChange?.(date)
                 }}
             />
+
         </PopoverContent>
     </Popover>
 }
 export function DateRangePicker({ onChange, date }: { onChange?: (date: DateRange | undefined) => void, date?: DateRange }) {
     const [open, setOpen] = React.useState(false)
+    const [_date, setDate] = useState(date)
     return <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
             <Button
@@ -53,13 +55,18 @@ export function DateRangePicker({ onChange, date }: { onChange?: (date: DateRang
             <Calendar
                 hidden={hidden}
                 mode="range"
-                selected={date}
+                selected={_date}
                 captionLayout="dropdown"
                 onSelect={(date) => {
-                    setOpen(false)
-                    onChange?.(date)
+                    setDate(date)
                 }}
             />
+            <Button className="w-full" onClick={() => {
+                onChange?.(_date)
+                setOpen(false)
+            }}>
+                Confirm
+            </Button>
         </PopoverContent>
     </Popover>
 }
