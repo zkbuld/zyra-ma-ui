@@ -109,7 +109,7 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
   const [selected, setSelected] = useState<ItemData[]>([])
   useEffect(() => {
     setSelected(old => old.filter(item => fData.includes(item)))
-  },[fData])
+  }, [fData])
   const [selectedGroup, setSelectedGroup] = useState<number>()
   const refBody = useRef<HTMLTableSectionElement>(null)
   const changeChecked = (item: ItemData, checked: boolean) => {
@@ -201,10 +201,13 @@ function PendingMa({ maconfig }: { maconfig: MaConfig }) {
 }
 function MaturityMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecodes: ReturnType<typeof useAllRecodes> }) {
   const { address } = useAccount()
-  // const [data, setData] = useState<ItemData[]>(testData)
-  const data = queryRecodes.data.filter(item => toNumber(item.endTimestamp) > toUnix(now()) && !item.unstaked)
   const [selected, setSelected] = useState<typeof data>([])
   const [selectedGroup, setSelectedGroup] = useState<number>()
+
+  const data = useMemo(() => queryRecodes.data.filter(item => toNumber(item.endTimestamp) > toUnix(now()) && !item.unstaked), [queryRecodes.data])
+  useEffect(() => {
+    setSelected(old => old.filter(item => data.includes(item)))
+  }, [data])
   const refBody = useRef<HTMLTableSectionElement>(null)
   const changeChecked = (item: (typeof data)[number], checked: boolean) => {
     if (checked) {
