@@ -14,11 +14,17 @@ export type MaConfig = {
 };
 export const MaConfigs: MaConfig[] = [
   {
-    chain: bscTestnet,
-    stake: "0x8f55acb3a053a2b14cea7b8825a67537fce623b1",
-    asset: "0x3cf4b2d37fa4aa5d9ba34bf79d15103935e58b5d",
+    chain: bsc,
+    stake: "0x9390c02c5fee109bbd3f5e426e3532c811f95f90",
+    asset: "0x0d8c844716Bcd981D9b6d3F2ccf5364129086c96",
     assetDecimals: 18
   },
+  // {
+  //   chain: bscTestnet,
+  //   stake: "0x8f55acb3a053a2b14cea7b8825a67537fce623b1",
+  //   asset: "0x3cf4b2d37fa4aa5d9ba34bf79d15103935e58b5d",
+  //   assetDecimals: 18
+  // },
 ];
 
 export const abiMaStake = parseAbi([

@@ -28,46 +28,14 @@ type ItemData = {
   dueDate: `${number}`,
 }
 
-// const testData: ItemData[] = [
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-//   { user: zeroAddress, sn: '2352q45', amount: 1249000000000000000n, startDate: '1757433600', dueDate: '1757433600' },
-// ]
-const MaxSelect = 10;
+const MaxSelect = 20;
 
 function useAllRecodes(maconfig: MaConfig) {
   return useQuery({
     queryKey: ['AllRecodes', maconfig.chain, maconfig.stake],
     initialData: [],
+    refetchOnWindowFocus: false,
+    retry: 3,
     enabled: Boolean(maconfig),
     queryFn: async () => {
       const pc = getPC(maconfig.chain.id)
@@ -94,7 +62,7 @@ function PendingMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecode
     return map
   }, [queryRecodes.data])
 
-  const { data } = useQuery({
+  const { data, isFetching } = useQuery({
     queryKey: ['pending datas', maconfig.stake, address],
     initialData: [],
     enabled: Boolean(address),
@@ -162,7 +130,10 @@ function PendingMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecode
   }
 
   return <div className='flex flex-col gap-5 mt-2'>
-    <DateRangePicker date={daterange} onChange={setDateRange as any} />
+    <div className='flex items-center gap-5'>
+      <DateRangePicker date={daterange} onChange={setDateRange as any} />
+      {isFetching && <div className='flex items-center gap-2'><Loader2Icon className="animate-spin" />正在加载待操作数据</div>}
+    </div>
     <div className='grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2'>
       {
         range(0, fData.length, MaxSelect).map((_, index) =>
@@ -188,8 +159,8 @@ function PendingMa({ maconfig, queryRecodes }: { maconfig: MaConfig, queryRecode
       <STable
         refBody={refBody}
         header={['Address', 'Mining machine SN', 'Zyra amount', 'Start Date', 'Due Date', '']}
-        rowClassName={(i) => selected.includes(data[i]) ? 'bg-primary/20' : ''}
-        onClickRow={(i) => changeChecked(data[i], !selected.includes(data[i]))}
+        rowClassName={(i) => selected.includes(fData[i]) ? 'bg-primary/20' : ''}
+        onClickRow={(i) => changeChecked(fData[i], !selected.includes(fData[i]))}
         data={fData.map((item) => [
           shortStr(item.user),
           <div key={'sn'}>{item.sn}</div>,
@@ -321,8 +292,9 @@ function App() {
           <ConfigChainsProvider chains={[config.chain]}>
             <Tabs defaultValue='Pending'>
               <TabsList>
-                <TabsTrigger value="Pending">Pending</TabsTrigger>
-                <TabsTrigger value="Maturity">Maturity</TabsTrigger>
+                <TabsTrigger value="Pending">待操作</TabsTrigger>
+                <TabsTrigger value="Maturity">已成熟</TabsTrigger>
+                {queryRecodes.isFetching && <div className='flex items-center gap-2'><Loader2Icon className="animate-spin" />正在加载已上链数据</div>}
               </TabsList>
               <TabsContent value='Pending'>
                 <PendingMa maconfig={config} queryRecodes={queryRecodes} />
